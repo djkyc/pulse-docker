@@ -3,27 +3,17 @@ name: Build and Push Docker Image to GitHub Packages
 on:
   push:
     branches:
-      - main    # 每次推送到 main 分支时触发
-  release:
-    types:
-      - published  # 新发布版本时触发
-  workflow_dispatch:    # 允许手动触发
-    inputs:             # 可以定义一些输入（可选）
-      version:
-        description: 'Version for the Docker image'
-        required: true
-        default: 'latest'  # 默认值
+      - main
+  workflow_dispatch:  # 手动触发
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-    # 获取代码
     - name: Checkout code
       uses: actions/checkout@v2
 
-    # 登录到 GitHub Container Registry
     - name: Log in to GitHub Container Registry
       uses: docker/login-action@v2
       with:
@@ -31,10 +21,8 @@ jobs:
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
 
-    # 构建 Docker 镜像
     - name: Build Docker image
-      run: docker build -t ghcr.io/djkyc/pulse-docker/pulse-app:${{ github.event.inputs.version }} .
+      run: docker build -t ghcr.io/djkyc/pulse-docker/pulse-app:latest .
 
-    # 推送 Docker 镜像到 GitHub Packages
     - name: Push Docker image
-      run: docker push ghcr.io/djkyc/pulse-docker/pulse-app:${{ github.event.inputs.version }}
+      run: docker push ghcr.io/djkyc/pulse-docker/pulse-app:latest
