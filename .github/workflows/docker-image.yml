@@ -7,6 +7,12 @@ on:
   release:
     types:
       - published  # 新发布版本时触发
+  workflow_dispatch:    # 允许手动触发
+    inputs:             # 可以定义一些输入（可选）
+      version:
+        description: 'Version for the Docker image'
+        required: true
+        default: 'latest'  # 默认值
 
 jobs:
   build:
@@ -27,8 +33,8 @@ jobs:
 
     # 构建 Docker 镜像
     - name: Build Docker image
-      run: docker build -t ghcr.io/${{ github.repository }}/pulse-app:latest .
+      run: docker build -t ghcr.io/djkyc/pulse-docker/pulse-app:${{ github.event.inputs.version }} .
 
     # 推送 Docker 镜像到 GitHub Packages
     - name: Push Docker image
-      run: docker push ghcr.io/${{ github.repository }}/pulse-app:latest
+      run: docker push ghcr.io/djkyc/pulse-docker/pulse-app:${{ github.event.inputs.version }}
