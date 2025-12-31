@@ -1,19 +1,28 @@
-name: Build and Push Docker Image to GitHub Packages
+name: Build and Push Pulse Docker Image
 
+# 触发条件：push 到 main 或 手动点击运行
 on:
   push:
     branches:
       - main
-  workflow_dispatch:  # 手动触发
+  workflow_dispatch:
 
 jobs:
+
   build:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
+    # 1) Checkout 当前仓库
+    - name: Checkout this repo
+      uses: actions/checkout@v3
 
+    # 2) Clone 原作者仓库到目录 pulse-src
+    - name: Clone original xhhcn/Pulse repo
+      run: |
+        git clone https://github.com/xhhcn/Pulse.git pulse-src
+
+    # 3) 登录 GHCR (GitHub Container Registry)
     - name: Log in to GitHub Container Registry
       uses: docker/login-action@v2
       with:
@@ -21,8 +30,20 @@ jobs:
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
 
+    # 4) Build Docker 镜像
     - name: Build Docker image
-      run: docker build -t ghcr.io/djkyc/pulse-docker/pulse-app:latest .
+      working-directory: pulse-src
+      run: |
+        docker build -t ghcr.io/${{ github.repository }}/pulse:latest .
 
+    # 5) Push Docker 镜像
     - name: Push Docker image
-      run: docker push ghcr.io/djkyc/pulse-docker/pulse-app:latest
+      run: |
+        docker push ghcr.io/${{ github.repository }}/pulse:latest
+
+    # 如果需要推多个 tag（例如版本号 tag）
+    #- name: Tag with version
+    #  run: |
+    #    VERSION=$(date +%Y%m%d%H%M)
+    #    docker tag ghcr.io/${{ github.repository }}/pulse:latest ghcr.io/${{ github.repository }}/pulse:$VERSION
+    #    docker push ghcr.io/${{ github.repository }}/pulse:$VERSION
